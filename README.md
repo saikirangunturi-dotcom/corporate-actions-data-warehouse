@@ -15,9 +15,9 @@ Corporate actions (such as dividends, stock splits, and mergers) are critical fi
 ## Architecture
 The project follows a Medallion Architecture (Bronze → Silver → Gold):
 
-Bronze Layer: Raw data ingestion from source CSV files
-Silver Layer: Data cleansing, standardization, and transformation
-Gold Layer: Business-ready fact and dimension tables for analytics
+- Bronze Layer: Raw data ingestion from source CSV files
+- Silver Layer: Data cleansing, standardization, and transformation
+- Gold Layer: Business-ready fact and dimension tables for analytics
 
 This layered approach ensures data quality, scalability, and maintainability.
 
