@@ -5,7 +5,23 @@ This project demonstrates the design and implementation of an end-to-end SQL-bas
 
 ---
 
-## Project Requirements
+## Project Overview
+Corporate actions (such as dividends, stock splits, and mergers) are critical financial events that impact securities and investors. This project simulates a real-world data engineering and analytics pipeline to:
+- Consolidate data from multiple financial sources
+- Track the lifecycle of corporate actions
+- Enable historical analysis and reporting
+- Deliver business-ready insights using SQL
+
+## Architecture
+The project follows a Medallion Architecture (Bronze → Silver → Gold):
+
+Bronze Layer: Raw data ingestion from source CSV files
+Silver Layer: Data cleansing, standardization, and transformation
+Gold Layer: Business-ready fact and dimension tables for analytics
+
+This layered approach ensures data quality, scalability, and maintainability.
+
+## Requirements
 
 ### Building the Data Warehouse (Data Engineering)
 
@@ -40,5 +56,3 @@ This project is licensed under the [MIT License](LICENSE). you are free to use, 
 Hi there! I'm **Saikiran Gunturu**, I have over 10 years experience in financial data analysis, corporate actions & ownership structures, M&A data analysis, business research and data validation.
 
 This project reflects my expertise in combining financial domain knowledge with data engineering and analytics.
-
----
