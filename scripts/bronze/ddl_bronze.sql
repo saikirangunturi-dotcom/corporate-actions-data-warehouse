@@ -11,12 +11,12 @@ Script Purpose:
 
 -- Companies master raw table
 
-IF OBJECT_ID('bronze.companies', 'U') IS NOT NULL
-    DROP TABLE bronze.companies;
+IF OBJECT_ID('bronze.mdv_companies', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_companies;
 GO
 
-CREATE TABLE bronze.companies (
-    company_id      INT,
+CREATE TABLE bronze.mdv_companies (
+    company_id      NVARCHAR(50),
     company_name    NVARCHAR(50),
     sector          NVARCHAR(50),
     country         NVARCHAR(50)
@@ -25,38 +25,38 @@ GO
 
 -- Securities raw table
 
-IF OBJECT_ID('bronze.securities', 'U') IS NOT NULL
-    DROP TABLE bronze.securities;
+IF OBJECT_ID('bronze.mdv_securities', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_securities;
 GO
 
-CREATE TABLE bronze.securities (
-    security_id     INT,
+CREATE TABLE bronze.mdv_securities (
+    security_id     NVARCHAR(50),
     ticker          NVARCHAR(50),
     isin            NVARCHAR(50),
-    company_id      INT
+    company_id      NVARCHAR(50)
 );
 GO
 
 -- Event types raw table
 
-IF OBJECT_ID('bronze.event_types', 'U') IS NOT NULL
-    DROP TABLE bronze.event_types;
+IF OBJECT_ID('bronze.mdv_event_types', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_event_types;
 GO
 
-CREATE TABLE bronze.event_types (
-    event_type_id   INT,
+CREATE TABLE bronze.mdv_event_types (
+    event_type_id   NVARCHAR(50),
     event_name      NVARCHAR(50)
 );
 GO
 
 -- Main corporate actions raw table
 
-IF OBJECT_ID('bronze.corporate_actions', 'U') IS NOT NULL
-    DROP TABLE bronze.corporate_actions;
+IF OBJECT_ID('bronze.mdv_corporate_actions', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_corporate_actions;
 GO
 
-CREATE TABLE bronze.corporate_actions (
-    action_id           INT,
+CREATE TABLE bronze.mdv_corporate_actions (
+    action_id           NVARCHAR(50),
     company_name        NVARCHAR(50),
     ticker              NVARCHAR(50),
     event_type          NVARCHAR(50),
@@ -72,12 +72,12 @@ GO
 
 -- Dividend-specific raw table
 
-IF OBJECT_ID('bronze.dividends', 'U') IS NOT NULL
-    DROP TABLE bronze.dividends;
+IF OBJECT_ID('bronze.mdv_dividends', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_dividends;
 GO
 
-CREATE TABLE bronze.dividends (
-    action_id           INT,
+CREATE TABLE bronze.mdv_dividends (
+    action_id           NVARCHAR(50),
     dividend_amount     NVARCHAR(50),
     currency            NVARCHAR(20)
 );
@@ -85,24 +85,24 @@ GO
 
 -- Split-specific raw table
 
-IF OBJECT_ID('bronze.splits', 'U') IS NOT NULL
-    DROP TABLE bronze.splits;
+IF OBJECT_ID('bronze.mdv_splits', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_splits;
 GO
 
-CREATE TABLE bronze.splits (
-    action_id           INT,
+CREATE TABLE bronze.mdv_splits (
+    action_id           NVARCHAR(50),
     split_ratio         NVARCHAR(50)
 );
 GO
 
 -- Merger-specific raw table
 
-IF OBJECT_ID('bronze.mergers', 'U') IS NOT NULL
-    DROP TABLE bronze.mergers;
+IF OBJECT_ID('bronze.mdv_mergers', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_mergers;
 GO
 
-CREATE TABLE bronze.mergers (
-    action_id           INT,
+CREATE TABLE bronze.mdv_mergers (
+    action_id           NVARCHAR(50),
     target_company      NVARCHAR(50),
     acquirer_company    NVARCHAR(50)
 );
@@ -110,11 +110,11 @@ GO
 
 -- Date dimension raw table
 
-IF OBJECT_ID('bronze.dates', 'U') IS NOT NULL
-    DROP TABLE bronze.dates;
+IF OBJECT_ID('bronze.mdv_dates', 'U') IS NOT NULL
+    DROP TABLE bronze.mdv_dates;
 GO
 
-CREATE TABLE bronze.dates (
+CREATE TABLE bronze.mdv_dates (
     full_date       NVARCHAR(50),
     day             INT,
     day_name        NVARCHAR(20),
@@ -127,3 +127,9 @@ CREATE TABLE bronze.dates (
     is_weekend      NVARCHAR(5)
 );
 GO
+
+--Retrieve All Bronze Tables
+
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'bronze';
