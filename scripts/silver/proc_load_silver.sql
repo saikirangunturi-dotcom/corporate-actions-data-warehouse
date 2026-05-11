@@ -122,10 +122,34 @@ BEGIN
 					ELSE 'n/a'
 				END AS event_type,
 
-				TRY_CONVERT(DATE, NULLIF(TRIM(announcement_date), ''), 105) AS announcement_date,
-				TRY_CONVERT(DATE, NULLIF(TRIM(ex_date), ''), 105) AS ex_date,
-				TRY_CONVERT(DATE, NULLIF(TRIM(record_date), ''), 105) AS record_date,
-				TRY_CONVERT(DATE, NULLIF(TRIM(payment_date), ''), 105) AS payment_date,
+				COALESCE(
+					TRY_CONVERT(DATE, NULLIF(TRIM(announcement_date), ''), 105), -- dd-mm-yyyy
+					TRY_CONVERT(DATE, NULLIF(TRIM(announcement_date), ''), 23),  -- yyyy-mm-dd
+					TRY_CONVERT(DATE, NULLIF(TRIM(announcement_date), ''), 103), -- dd/mm/yyyy
+					TRY_CONVERT(DATE, NULLIF(TRIM(announcement_date), ''), 111)  -- yyyy/mm/dd
+					) AS announcement_date,
+				
+				COALESCE(
+					TRY_CONVERT(DATE, NULLIF(TRIM(ex_date), ''), 105),
+					TRY_CONVERT(DATE, NULLIF(TRIM(ex_date), ''), 23),
+					TRY_CONVERT(DATE, NULLIF(TRIM(ex_date), ''), 103),
+					TRY_CONVERT(DATE, NULLIF(TRIM(ex_date), ''), 111)
+					) AS ex_date,
+
+				COALESCE(
+					TRY_CONVERT(DATE, NULLIF(TRIM(record_date), ''), 105),
+					TRY_CONVERT(DATE, NULLIF(TRIM(record_date), ''), 23),
+					TRY_CONVERT(DATE, NULLIF(TRIM(record_date), ''), 103),
+					TRY_CONVERT(DATE, NULLIF(TRIM(record_date), ''), 111)
+					) AS record_date,
+
+				COALESCE(
+				TRY_CONVERT(DATE, NULLIF(TRIM(payment_date), ''), 105),
+				TRY_CONVERT(DATE, NULLIF(TRIM(payment_date), ''), 23),
+				TRY_CONVERT(DATE, NULLIF(TRIM(payment_date), ''), 103),
+				TRY_CONVERT(DATE, NULLIF(TRIM(payment_date), ''), 111)
+				) AS payment_date,
+
 				TRY_CAST(NULLIF(TRIM(dividend_amount), '') AS DECIMAL(10,2)) AS dividend_amount,
 
 				CASE
@@ -209,10 +233,11 @@ BEGIN
 			AND security_id IS NOT NULL
 			AND event_type_id IS NOT NULL
 			AND event_type IN ('Dividend', 'Split', 'Merger')
+			AND announcement_date IS NOT NULL
 			/* Date validations */
-			AND (announcement_date IS NULL OR ex_date IS NULL OR ex_date >= announcement_date)
-			AND (announcement_date IS NULL OR record_date IS NULL OR record_date >= announcement_date)
-			AND (announcement_date IS NULL OR payment_date IS NULL OR payment_date >= announcement_date)
+			AND (ex_date IS NULL OR ex_date >= announcement_date)
+			AND (record_date IS NULL OR record_date >= announcement_date)
+			AND (payment_date IS NULL OR payment_date >= announcement_date)
 			AND (ex_date IS NULL OR record_date IS NULL OR record_date >= ex_date)
 			AND (ex_date IS NULL OR payment_date IS NULL OR payment_date >= ex_date)
 			AND (record_date IS NULL OR payment_date IS NULL OR payment_date >= record_date)
@@ -313,31 +338,59 @@ BEGIN
 		PRINT '>> Truncating Table: silver.mdv_dates';
 		TRUNCATE TABLE silver.mdv_dates;
 		PRINT '>> Inserting Data Into: silver.mdv_dates';
-		INSERT INTO silver.mdv_dates (
-			full_date,
-			day,
-			day_name,
-			day_of_week,
-			week_of_year,
-			month,
-			month_name,
-			quarter,
-			year,
-			is_weekend
-		)
-		SELECT DISTINCT
-			TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 105) AS full_date,
-			day,
-			day_name,
-			day_of_week,
-			week_of_year,
-			month,
-			month_name,
-			quarter,
-			year,
-			is_weekend
-			FROM bronze.mdv_dates
-			WHERE TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 105) IS NOT NULL;
+		WITH cleaned_dates AS
+			(
+				SELECT
+					
+					COALESCE(
+						TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 105), -- dd-mm-yyyy
+						TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 23),  -- yyyy-mm-dd
+						TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 103), -- dd/mm/yyyy
+						TRY_CONVERT(DATE, NULLIF(TRIM(full_date), ''), 111)  -- yyyy/mm/dd
+						) AS full_date,
+					TRY_CAST(day AS INT) AS day,
+					TRIM(day_name) AS day_name,
+					TRY_CAST(day_of_week AS INT) AS day_of_week,
+					TRY_CAST(week_of_year AS INT) AS week_of_year,
+					TRY_CAST(month AS INT) AS month,
+					TRIM(month_name) AS month_name,
+					TRY_CAST(quarter AS INT) AS quarter,
+					TRY_CAST(year AS INT) AS year,
+
+					CASE
+						WHEN UPPER(TRIM(is_weekend)) = 'Y' THEN 'Y'
+						WHEN UPPER(TRIM(is_weekend)) = 'N' THEN 'N'
+						ELSE 'UNKNOWN'
+					END AS is_weekend
+				FROM bronze.mdv_dates
+			)
+			INSERT INTO silver.mdv_dates
+			(
+				full_date,
+				day,
+				day_name,
+				day_of_week,
+				week_of_year,
+				month,
+				month_name,
+				quarter,
+				year,
+				is_weekend
+			)
+			SELECT DISTINCT
+				full_date,
+				day,
+				day_name,
+				day_of_week,
+				week_of_year,
+				month,
+				month_name,
+				quarter,
+				year,
+				is_weekend
+			FROM cleaned_dates
+			WHERE full_date IS NOT NULL;
+
 	    SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
         PRINT '>> -------------';
