@@ -1,32 +1,35 @@
-CREATE INDEX idx_fact_company_key
-ON gold.fact_corporate_actions_tbl(company_key); ---Used when joining fact table with gold.dim_companies_tbl
+CREATE INDEX ix_ca_action
+  ON silver.mdv_corporate_actions(action_id); -- Speeds up joins from corporate actions to dividend, split, and merger detail tables.
 
-CREATE INDEX idx_fact_event_type_key
-ON gold.fact_corporate_actions_tbl(event_type_key); ---Used when filtering/reporting by event type like Dividend, Split, Merger
+CREATE INDEX ix_dim_company 
+  ON gold.dim_companies(company_name); -- Improves company lookup when loading fact data and filtering reports by company.
 
-DROP INDEX idx_fact_event_type_key
-ON gold.fact_corporate_actions_tbl; --Dropped the index
+CREATE INDEX ix_dim_security
+  ON gold.dim_securities(ticker); -- Improves ticker-based joins and Power BI filtering by ticker.
 
-CREATE INDEX idx_fact_announcement_date_key
-ON gold.fact_corporate_actions_tbl(announcement_date_key); --Used for monthly/yearly trend reports based on announcement date
+CREATE INDEX ix_dim_event
+  ON gold.dim_event_types(event_type_standard); -- Speeds up event type filtering such as Dividend, Split, and Merger.
 
-CREATE INDEX idx_fact_security_key
-ON gold.fact_corporate_actions_tbl(security_key); --useful when joining with security/ticker/ISIN dimension
+CREATE INDEX ix_div_action
+  ON silver.mdv_dividends(action_id); -- Speeds up joins between corporate actions and dividend details.
 
-CREATE INDEX idx_fact_ca_status
-ON gold.fact_corporate_actions_tbl(ca_status); --useful when filtering by status like COMPLETED, PENDING, CANCELLED
+CREATE INDEX ix_split_action
+  ON silver.mdv_splits(action_id); -- Speeds up joins between corporate actions and split details.
 
-DROP INDEX idx_fact_ca_status
-ON gold.fact_corporate_actions_tbl; --Dropped the index
+CREATE INDEX ix_merger_action
+  ON silver.mdv_mergers(action_id); -- Speeds up joins between corporate actions and merger details.
 
-CREATE INDEX idx_fact_ex_date_key
-ON gold.fact_corporate_actions_tbl(ex_date_key); --useful for dividend/split reports where ex-date is important
+CREATE INDEX ix_fact_company_key
+  ON gold.fact_corporate_actions(company_key); -- Improves joins between fact table and company dimension.
 
-DROP INDEX idx_fact_ex_date_key
-ON gold.fact_corporate_actions_tbl --Dropped the index
+CREATE INDEX ix_fact_security_key
+  ON gold.fact_corporate_actions(security_key); -- Improves joins between fact table and security dimension.
 
-CREATE INDEX idx_fact_event_date
-ON gold.fact_corporate_actions_tbl(event_type_key, announcement_date_key); --Event and Date analytics
+CREATE INDEX ix_fact_event_type_key
+  ON gold.fact_corporate_actions(event_type_key); -- Improves joins and filtering by corporate action type.
 
-CREATE INDEX idx_fact_company_event
-ON gold.fact_corporate_actions_tbl(company_key, event_type_key); -- Company and event analytics
+CREATE INDEX ix_fact_validation_status
+  ON gold.fact_corporate_actions(validation_status); -- Speeds up data quality reporting for Valid, Warning, and Invalid records.
+
+CREATE INDEX ix_fact_announcement_date
+  ON gold.fact_corporate_actions(announcement_date); -- Improves date-based filtering, trend analysis, and Power BI slicers.
