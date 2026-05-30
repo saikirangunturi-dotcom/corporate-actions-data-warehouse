@@ -62,21 +62,27 @@ IF OBJECT_ID('silver.mdv_corporate_actions', 'U') IS NOT NULL
 GO
 
 CREATE TABLE silver.mdv_corporate_actions (
-    action_id           INT,
-    company_id          NVARCHAR(50),
-    security_id         NVARCHAR(50),
-    event_type_id       NVARCHAR(50),
-    company_name        NVARCHAR(50),
-    ticker              NVARCHAR(50),
-    event_type          NVARCHAR(50),
-    announcement_date   DATE,
-    ex_date             DATE,
-    record_date         DATE,
-    payment_date        DATE,
-    dividend_amount     DECIMAL(10,2),
-    split_ratio         NVARCHAR(50),
-    ca_status           NVARCHAR(50),
-    dwh_create_date     DATETIME2 DEFAULT GETDATE()
+    action_id                   INT,
+    company_name                NVARCHAR(100),
+    ticker                      NVARCHAR(50),
+    master_company_name         NVARCHAR(100),
+    event_type_raw              NVARCHAR(100),
+    event_type_standard         NVARCHAR(50),
+    announcement_date           DATE,
+    ex_date                     DATE,
+    record_date                 DATE,
+    payment_date                DATE,
+    dividend_amount             DECIMAL(18,2),
+    split_ratio                 NVARCHAR(50),
+    ca_status                   NVARCHAR(50),
+    is_action_id_missing        BIT,
+    is_event_type_invalid       BIT,
+    is_company_ticker_mismatch  BIT,
+    is_date_sequence_invalid    BIT,
+    is_mandatory_date_missing   BIT,
+    validation_status           NVARCHAR(20),
+    validation_message          NVARCHAR(500),
+    dwh_create_date             DATETIME2 DEFAULT GETDATE()
 );
 GO
 
@@ -142,7 +148,7 @@ CREATE TABLE silver.mdv_dates (
 );
 GO
 
---All Silver Tables Creation Check--
+--All Silver Tables
 
 SELECT TABLE_SCHEMA, TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLES
