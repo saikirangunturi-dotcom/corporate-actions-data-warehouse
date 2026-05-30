@@ -1,13 +1,13 @@
 /*
 ===============================================================================
-Stored Procedure: Load Gold Layer (Gold Views -> Gold)
+Stored Procedure: Load Gold Layer (Silver -> Gold)
 ===============================================================================
 Script Purpose:
     This stored procedure performs the ETL (Extract, Transform, Load) process to
-	populate the 'gold' schema tables from the 'gold' views. 
+	populate the 'gold' schema tables from the 'silver' tables. 
     Actions Performed:
     - Truncates gold tables.
-    - Inserts transformed and cleansed data from gold views into gold tables.
+    - Inserts transformed and cleansed data from silver tables into gold tables.
 
 Parameters:
     None. 
@@ -17,9 +17,6 @@ Usage Example:
     EXEC gold.load_gold;
 ===============================================================================
 */
-
-USE CorporateActions
-GO
 
 CREATE OR ALTER PROCEDURE gold.load_gold AS
 BEGIN
@@ -37,24 +34,23 @@ BEGIN
 		-- Loading companies dimension data
         
 		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: gold.dim_companies_tbl';
-		TRUNCATE TABLE gold.dim_companies_tbl;
-		PRINT '>> Inserting Data Into: gold.dim_companies_tbl';
+		PRINT '>> Truncating Table: gold.dim_companies';
+		TRUNCATE TABLE gold.dim_companies;
+		PRINT '>> Inserting Data Into: gold.dim_companies';
 		
-		INSERT INTO gold.dim_companies_tbl (
-			company_key,
+		INSERT INTO gold.dim_companies
+		(
 			company_id,
 			company_name,
 			sector,
 			country
 		)
-		SELECT
-			company_key,
+		SELECT DISTINCT
 			company_id,
 			company_name,
 			sector,
 			country
-		FROM gold.dim_companies;
+		FROM silver.mdv_companies;
 
 		SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
@@ -63,22 +59,23 @@ BEGIN
 		-- Loading securities dimension data
         
 		SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: gold.dim_securities_tbl';
-		TRUNCATE TABLE gold.dim_securities_tbl;
-		PRINT '>> Inserting Data Into: gold.dim_securities_tbl';
+		PRINT '>> Truncating Table: gold.dim_securities';
+		TRUNCATE TABLE gold.dim_securities;
+		PRINT '>> Inserting Data Into: gold.dim_securities';
 		
-		INSERT INTO gold.dim_securities_tbl (
-			security_key,
+		INSERT INTO gold.dim_securities
+		(
 			security_id,
 			ticker,
-			isin
+			isin,
+			company_id
 		)
-		SELECT
-			security_key,
+		SELECT DISTINCT
 			security_id,
 			ticker,
-			isin
-		FROM gold.dim_securities;
+			isin,
+			company_id
+		FROM silver.mdv_securities;
 		
 		SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
@@ -87,20 +84,18 @@ BEGIN
         -- Loading event types dimension data
 
         SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: gold.dim_event_types_tbl';
-		TRUNCATE TABLE gold.dim_event_types_tbl;
-		PRINT '>> Inserting Data Into: gold.dim_event_types_tbl';
+		PRINT '>> Truncating Table: gold.dim_event_types';
+		TRUNCATE TABLE gold.dim_event_types;
+		PRINT '>> Inserting Data Into: gold.dim_event_types';
 		
-		INSERT INTO gold.dim_event_types_tbl (
-			event_type_key,
-			event_type_id,
-			event_name
+		INSERT INTO gold.dim_event_types
+		(
+			event_type_standard
 		)
-		SELECT
-			event_type_key,
-			event_type_id,
-			event_name
-		FROM gold.dim_event_types;
+		SELECT DISTINCT
+			event_type_standard
+		FROM silver.mdv_corporate_actions
+		WHERE event_type_standard <> 'Invalid';
 
 		SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
@@ -109,13 +104,12 @@ BEGIN
 		-- Loading dates dimension data
 
         SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: gold.dim_dates_tbl';
-		TRUNCATE TABLE gold.dim_dates_tbl;
-		PRINT '>> Inserting Data Into: gold.dim_dates_tbl';
+		PRINT '>> Truncating Table: gold.dim_dates';
+		TRUNCATE TABLE gold.dim_dates;
+		PRINT '>> Inserting Data Into: gold.dim_dates';
 		
-		INSERT INTO gold.dim_dates_tbl
+		INSERT INTO gold.dim_dates
 		(
-			date_key,
 			calendar_date,
 			day_number,
 			day_name,
@@ -127,19 +121,18 @@ BEGIN
 			year_number,
 			is_weekend
 		)
-		SELECT
-			date_key,
-			calendar_date,
-			day_number,
+		SELECT DISTINCT
+			full_date as calendar_date,
+			day AS day_number,
 			day_name,
 			day_of_week,
-			week_number,
-			month_number,
+			week_of_year AS week_number,
+			month AS month_number,
 			month_name,
-			quarter_number,
-			year_number,
+			quarter AS quarter_number,
+			year AS year_number,
 			is_weekend
-		FROM gold.dim_dates;
+		FROM silver.mdv_dates;
 
 		SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
@@ -148,43 +141,69 @@ BEGIN
 		-- Loading corporate actions fact data
 
         SET @start_time = GETDATE();
-		PRINT '>> Truncating Table: gold.fact_corporate_actions_tbl';
-		TRUNCATE TABLE gold.fact_corporate_actions_tbl;
-		PRINT '>> Inserting Data Into: gold.fact_corporate_actions_tbl';
+		PRINT '>> Truncating Table: gold.fact_corporate_actions';
+		TRUNCATE TABLE gold.fact_corporate_actions;
+		PRINT '>> Inserting Data Into: gold.fact_corporate_actions';
 
-		INSERT INTO gold.fact_corporate_actions_tbl
+		INSERT INTO gold.fact_corporate_actions
 		(
 			action_id,
 			company_key,
 			security_key,
 			event_type_key,
-			announcement_date_key,
-			ex_date_key,
-			record_date_key,
-			payment_date_key,
-			currency,
+			announcement_date,
+			ex_date,
+			record_date,
+			payment_date,
 			dividend_amount,
+			currency,
 			split_ratio,
-			ca_status
+			target_company,
+			acquirer_company,
+			ca_status,
+			is_action_id_missing,
+			is_event_type_invalid,
+			is_company_ticker_mismatch,
+			is_date_sequence_invalid,
+			is_mandatory_date_missing,
+			validation_status,
+			validation_message
 		)
 		SELECT
-			f.action_id,
-			f.company_key,
-			f.security_key,
-			f.event_type_key,
-			f.announcement_date_key,
-			f.ex_date_key,
-			f.record_date_key,
-			f.payment_date_key,
-			d.currency,
-			f.dividend_amount,
-			s.split_ratio,
-			f.ca_status
-		FROM gold.fact_corporate_actions f
+			ca.action_id,
+			dc.company_key,
+			ds.security_key,
+			det.event_type_key,
+			ca.announcement_date,
+			ca.ex_date,
+			ca.record_date,
+			ca.payment_date,
+			COALESCE(d.dividend_amount, ca.dividend_amount) AS dividend_amount,
+			COALESCE(d.currency, 'INR') AS currency,
+			COALESCE(sp.split_ratio, ca.split_ratio) AS split_ratio,
+			m.target_company,
+			m.acquirer_company,
+			ca.ca_status,
+			ca.is_action_id_missing,
+			ca.is_event_type_invalid,
+			ca.is_company_ticker_mismatch,
+			ca.is_date_sequence_invalid,
+			ca.is_mandatory_date_missing,
+			ca.validation_status,
+			ca.validation_message
+		FROM silver.mdv_corporate_actions ca
+		LEFT JOIN gold.dim_companies dc
+			ON ca.master_company_name = dc.company_name
+		LEFT JOIN gold.dim_securities ds
+			ON ca.ticker = ds.ticker
+		LEFT JOIN gold.dim_event_types det
+			ON ca.event_type_standard = det.event_type_standard
 		LEFT JOIN silver.mdv_dividends d
-		ON f.action_id = d.action_id
-		LEFT JOIN silver.mdv_splits s
-		ON f.action_id = s.action_id;
+			ON ca.action_id = d.action_id
+		LEFT JOIN silver.mdv_splits sp
+		ON ca.action_id = sp.action_id
+		LEFT JOIN silver.mdv_mergers m
+			ON ca.action_id = m.action_id;
 
 		SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
