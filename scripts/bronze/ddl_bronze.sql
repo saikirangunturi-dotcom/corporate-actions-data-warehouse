@@ -116,19 +116,19 @@ GO
 
 CREATE TABLE bronze.mdv_dates (
     full_date       NVARCHAR(50),
-    day             INT,
-    day_name        NVARCHAR(20),
-    day_of_week     INT,
-    week_of_year    INT,
-    month           INT,
+    day             NVARCHAR(50),
+    day_name        NVARCHAR(50),
+    day_of_week     NVARCHAR(50),
+    week_of_year    NVARCHAR(50),
+    month           NVARCHAR(50),
     month_name      NVARCHAR(20),
-    quarter         INT,
-    year            INT,
-    is_weekend      NVARCHAR(5)
+    quarter         NVARCHAR(50),
+    year            NVARCHAR(50),
+    is_weekend      NVARCHAR(10)
 );
 GO
 
---Retrieve All Bronze Tables
+--All Bronze Tables
 
 SELECT TABLE_SCHEMA, TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLES
