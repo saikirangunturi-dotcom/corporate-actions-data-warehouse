@@ -21,6 +21,9 @@ The project follows a Medallion Architecture (Bronze → Silver → Gold):
 
 This layered approach ensures data quality, scalability, and maintainability.
 
+<img width="1176" height="627" alt="image" src="https://github.com/user-attachments/assets/c86179b0-3eeb-400a-a92b-5871fdf01a8c" />
+
+
 ## Requirements
 
 ### Building the Data Warehouse (Data Engineering)
@@ -41,9 +44,35 @@ Design and build a data warehouse using SQL server to consolidate corporate acti
 
 #### Objective
 Develop SQL-based analytics on corporate actions data to generate actionable insights and support business decision-making.
-- **Corporate Actions Behavior**
+- **Corporate Actions Summary**
 - **Dividend Trends Over Time**
-- **Sector-wise Corporate Actions Comparison**
+- **Dividends, Split Ratio and Mergers Distribution**
+
+**Power BI Dashboards**
+
+**Corporate Actions Summary Dashboard**
+
+<img width="898" height="504" alt="image" src="https://github.com/user-attachments/assets/e3c7c48d-115c-499f-945d-fb9c17780058" />
+
+**Dividend Analysis**
+
+<img width="771" height="437" alt="image" src="https://github.com/user-attachments/assets/4a3e9142-10ba-4303-bcff-ac07650c949d" />
+
+**Split Analysis**
+
+<img width="771" height="446" alt="image" src="https://github.com/user-attachments/assets/156e3f93-dd48-4758-9177-783452ea75d9" />
+
+**Merger Analysis**
+
+<img width="773" height="436" alt="image" src="https://github.com/user-attachments/assets/56aef149-c07d-4cc5-aef3-bfd3465f91dd" />
+
+**Data Quality Summary**
+
+<img width="773" height="436" alt="image" src="https://github.com/user-attachments/assets/e756a994-df96-4288-b261-45969512c41e" />
+
+***Power BI Report:***
+
+https://app.powerbi.com/groups/4d035023-cb6e-4ee3-a744-9dae630dc3d1/reports/726b30a3-1db8-43b3-9196-324a5dbfa60d/6015e9738fd9f235f5e3?experience=power-bi
 
 ---
 
