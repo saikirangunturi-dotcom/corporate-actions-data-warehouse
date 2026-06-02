@@ -42,7 +42,7 @@ Design and build a data warehouse using SQL server to consolidate corporate acti
 
 **Notion Documentation**
 
-https://app.notion.com/p/SQL-Corporate-Actions-Data-Warehouse-Project-3580b1ba682080739c4df23c8122bea1
+https://flawless-colby-098.notion.site/SQL-Corporate-Actions-Data-Warehouse-Project-3580b1ba682080739c4df23c8122bea1
 
 ## BI: Analytics & Reporting (Data Analytics)
 
